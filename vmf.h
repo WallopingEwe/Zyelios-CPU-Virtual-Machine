@@ -164,9 +164,13 @@ struct VM {
     float Memory[MEMORY_MODEL];
     int32_t IP;
     float CMPR;
-    int32_t interrupt_flag;
-    int32_t cli_flag;
-    int32_t extended_flag;
+    int32_t IDTR;
+    int32_t PTBE;
+    int32_t PTBL;
+    int interrupt_flag;
+    int interrupt_skip;
+    int cli_flag;
+    int extended_flag;
     float EAX, EBX, ECX, EDX, ESI, EDI, ESP, EBP;
     float CS, SS, DS, ES, GS, FS, KS, LS;
     float R[32]; // Extended registers

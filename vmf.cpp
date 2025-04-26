@@ -122,7 +122,7 @@ Instruction instructions[] = {
     { 96, 0, WRPG },
     { 97, 0, RDPG },
     { 98, 0, TIMER },
-    { 99, 0, LIDTR },
+    { 99, 1, LIDTR },
     { 100, 0, 0 },
     { 101, 1, JNER },
     { 102, 1, JMPR },
@@ -213,7 +213,53 @@ void VM::CALL(int32_t address) {
 }
 
 void VM::int_vm(int32_t n) {
-    if(cli_flag) return;
+    if(cli_flag) {
+        interrupt_flag = n;
+        interrupt_skip = 1;
+        return;
+    }
+
+    if(extended_flag) {
+        int32_t addr = IDTR + n*4;
+        addr = (addr < 0) ? 0 : (addr > MEMORY_MODEL - 2) ? MEMORY_MODEL - 2 : addr;
+
+        int32_t ip = *ReadCell(addr);
+        int32_t cs = *ReadCell(addr+1);
+        int32_t newptbl = *ReadCell(addr+2);
+        int32_t flags = *ReadCell(addr+3);
+
+        if(flags & 32) { // 5
+
+            Push(IP);
+            Push(CS);
+
+            if(flags & 8) { // 3
+                CMPR = 1;
+            }
+
+            if(flags & 16) { // 4
+                JMP(ip);
+            } else {
+                JMP(ip, cs);
+            }
+
+            if(flags & 128) { // 7
+                PTBL = newptbl;
+            }
+    
+            if(flags & 256) { // 8
+                PTBE = newptbl;
+            }
+
+            if(flags & 512) { // 9
+                for(int i = 0; i < 31; i++) {
+                    Push(R[i]);
+                } 
+            }
+
+            interrupt_skip = 1;
+        }
+    }
 
     interrupt_flag = n;
 }
@@ -500,11 +546,12 @@ void VM::VM() {
     int i;
     for (i = 0; i < MEMORY_MODEL; i++) Memory[i] = 0;
     for (i = 0; i < 32; i++) R[i] = 0;
-    IP = CMPR = interrupt_flag = extended_flag = cli_flag = 0;
+    IP = CMPR = interrupt_flag = interrupt_skip = extended_flag = cli_flag = 0;
     EAX = EBX = ECX = EDX = ESI = EDI = 0;
     ESP = MEMORY_MODEL-1;
     EBP = 0;
     CS = SS = DS = ES = GS = FS = KS = LS = 0;
+    PTBL = PTBE = 0;
     immediate_swap = 0;
 }
 
@@ -628,7 +675,7 @@ int main(int argc, char *argv[]) {
 
     out_printf("Loaded bytecode (%ld values):\n", count);
     for (size_t i = 0; i < count; i++) {
-        out_printf("%f ", vm.Memory[i]);
+        //out_printf("%f ", vm.Memory[i]);
     }
     out_printf("\n");
 
@@ -686,7 +733,7 @@ int main(int argc, char *argv[]) {
 
     out_printf("Executing bytecode...\n");
 
-    while(!vm.interrupt_flag) {
+    while(1) {
         vm.step();
 
         #ifdef DEBUG_MODE
@@ -712,6 +759,15 @@ int main(int argc, char *argv[]) {
             #endif
         #endif
 
+        if(vm.interrupt_flag) {
+            if(vm.interrupt_skip) {
+                vm.interrupt_skip = 0;
+                vm.interrupt_flag = 0;
+            } else {
+                break;
+            }
+        }
+
         if(kbhit()) {
             if(getch() == 3) {
                 emit_error("\nProgram exited by user...");
@@ -720,6 +776,6 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    emit_error("\nError: %ld, IP: %ld", vm.interrupt_flag, vm.IP);
+    emit_error("\nError: %d, IP: %ld", vm.interrupt_flag, vm.IP);
     return 0;
 }
