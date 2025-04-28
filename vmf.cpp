@@ -121,7 +121,7 @@ Instruction instructions[] = {
     { 95, 0, ERPG },
     { 96, 0, WRPG },
     { 97, 0, RDPG },
-    { 98, 0, TIMER },
+    { 98, 1, TIMER },
     { 99, 1, LIDTR },
     { 100, 0, 0 },
     { 101, 1, JNER },
@@ -143,8 +143,8 @@ Instruction instructions[] = {
     { 117, 0, LEAVE },
     { 118, 0, STM },
     { 119, 0, CLM },
-    { 120, 0, CPUGET },
-    { 121, 0, CPUSET },
+    { 120, 2, CPUGET },
+    { 121, 2, CPUSET },
     { 122, 0, SPP },
     { 123, 0, CPP },
     { 124, 0, SRL },
@@ -182,7 +182,7 @@ Instruction instructions[] = {
 void VM::JMP(int32_t address, int32_t segment) {
     address += segment;        
     if(address < 0 || address >= MEMORY_MODEL) {
-        int_vm(ERR_END_EXECUTION);
+        int_vm(ERR_END_EXECUTION, address);
         return;
     }
 
@@ -193,7 +193,7 @@ void VM::JMP(int32_t address, int32_t segment) {
 void VM::JMP(int32_t address) {
     address += CS;
     if(address < 0 || address >= MEMORY_MODEL) {
-        int_vm(ERR_END_EXECUTION);
+        int_vm(ERR_END_EXECUTION, address);
         return;
     }
     
@@ -212,7 +212,7 @@ void VM::CALL(int32_t address) {
     JMP(address);
 }
 
-void VM::int_vm(int32_t n) {
+void VM::int_vm(int32_t n, float p) {
     if(cli_flag) {
         interrupt_flag = n;
         interrupt_skip = 1;
@@ -261,6 +261,8 @@ void VM::int_vm(int32_t n) {
         }
     }
 
+    LINT = n;
+    LADD = p;
     interrupt_flag = n;
 }
 
@@ -268,7 +270,7 @@ void VM::Push(float n) {
     int32_t address = ESP + SS;
 
     if(ESP == SS || address < 0 || address >= MEMORY_MODEL) {
-        int_vm(ERR_STACK_ERROR);
+        int_vm(ERR_STACK_ERROR, n);
         return;
     }
     
@@ -281,7 +283,7 @@ float VM::Pop() {
 
     int32_t address = ESP + SS;
     if(address < 0 || address >= MEMORY_MODEL) {
-        int_vm(ERR_STACK_ERROR);
+        int_vm(ERR_STACK_ERROR, address);
         return NULL;
     }
 
@@ -292,7 +294,7 @@ float* VM::ReadCell(int32_t address, int32_t segment) {
     address += segment;
 
     if (address < 0 || address >= MEMORY_MODEL) {
-        int_vm(ERR_MEMORY_FAULT);
+        int_vm(ERR_MEMORY_FAULT, address);
         return nullptr;
     }
 
@@ -303,7 +305,7 @@ float* VM::ReadCell(int32_t address) {
     address += DS;
 
     if (address < 0 || address >= MEMORY_MODEL) {
-        int_vm(ERR_MEMORY_FAULT);
+        int_vm(ERR_MEMORY_FAULT, address);
         return nullptr;
     }
 
@@ -314,7 +316,7 @@ void VM::WriteCell(int32_t address, int32_t segment, int32_t value) {
     address += segment;
 
     if (address < 0 || address >= MEMORY_MODEL) {
-        int_vm(ERR_MEMORY_FAULT);
+        int_vm(ERR_MEMORY_FAULT, address);
         return;
     }
 
@@ -325,7 +327,7 @@ void VM::WriteCell(int32_t address, int32_t value) {
     address += DS;
     
     if (address < 0 || address >= MEMORY_MODEL) {
-        int_vm(ERR_MEMORY_FAULT);
+        int_vm(ERR_MEMORY_FAULT, address);
         return;
     }
 
@@ -336,7 +338,7 @@ float VM::fetch() {
     int32_t address = CS + IP;
 
     if(address < 0 || address >= MEMORY_MODEL) {
-        int_vm(ERR_MEMORY_FAULT);
+        int_vm(ERR_MEMORY_FAULT, address);
         return 0;
     }
 
@@ -412,7 +414,7 @@ float* VM::GetOperand(int32_t rm, int32_t segment) {
         }
     }
 
-    int_vm(ERR_PROCESSOR_FAULT);
+    int_vm(ERR_PROCESSOR_FAULT, 0);
     return nullptr;
 }
 
@@ -436,7 +438,7 @@ float* VM::GetRegister(int32_t index) {
         case 15: return &KS;
         case 16: return &LS;
         default: 
-            int_vm(ERR_PROCESSOR_FAULT);
+            int_vm(ERR_PROCESSOR_FAULT, 0);
             return nullptr;
     }
 }
@@ -464,14 +466,177 @@ float* VM::GetSegment(int32_t index) {
                 return &R[index - 17];
             }
 
-            int_vm(ERR_PROCESSOR_FAULT);
+            int_vm(ERR_PROCESSOR_FAULT, index);
             return nullptr;
+    }
+}
+
+float VM::GetInternalRegister(int32_t index) {
+    switch(index) {
+        case 0: return IP;
+        case 1: return EAX;
+        case 2: return EBX;
+        case 3: return ECX;
+        case 4: return EDX;
+        case 5: return ESI;
+        case 6: return EDI;
+        case 7: return ESP;
+        case 8: return EBP;
+        case 9: return ESZ;
+        case 16: return CS;
+        case 17: return SS;
+        case 18: return DS;
+        case 19: return ES;
+        case 20: return GS;
+        case 21: return FS;
+        case 22: return KS;
+        case 23: return LS;
+        case 24: return IDTR;
+        case 25: return CMPR;
+        case 26: return XEIP;
+        case 27: return LADD;
+        case 28: return LINT;
+        case 29: return 0; // TMR
+        case 30: return 0; // TIMER
+        case 31: return 0; // CPAGE
+        case 32: return interrupt_flag;
+        case 33: return 0; // PF
+        case 34: return extended_flag;
+        case 35: return 0; // NIF
+        case 36: return extended_memory_flag;
+        case 37: return PTBL;
+        case 38: return PTBE;
+        case 39: return 0; // PCAP
+        case 40: return 0; // RQCAP
+        case 41: return 0; // PPAGE
+        case 42: return 0; // MEMRQ
+        case 43: return MEMORY_MODEL;
+        case 44: return 0; // External
+        case 45: return 0; // Buslock
+        case 46: return 0; // Idle
+        case 47: return 0; // INTR
+        case 48: return 0; // Serial Number
+        case 49: return 0; // Code Bytes
+        case 50: return 0; // BPREC
+        case 51: return 0; // IPREC
+        case 52: return 0; // NIDT
+        case 53: return 0; // BlockStart
+        case 54: return 0; // BlockSize
+        case 55: return 0; // VMODE
+        case 56: return 0; // XTRL
+        case 57: return 0; // HaltPort
+        case 58: return 0; // HWDEBUG
+        case 59: return 0; // DBGSTATE
+        case 60: return 0; // DBGADDR
+        case 61: return 0; // CRL
+        case 62: return 0; // TIMERDT
+        case 63: return 0; // MEMADDR
+        case 64: return 0; // TimerMode
+        case 65: return 0; // TimerRate
+        case 66: return 0; // TimerPrevTime
+        case 67: return 0; // TimerAddress
+        case 68: return 0; // TimerPrevMode
+        case 69: return 0; // LASTQUO
+        case 70: return 0; // QUOFLAG
+        case 71: return 0; // PreqOperand1
+        case 72: return 0; // PreqOperand2
+        case 73: return 0; // PreqReturn
+        case 74: return 0; // PreqHandled
+        default:
+            if (index >= 96 && index <= 126) {
+                return R[index - 17];
+            }
+
+            int_vm(ERR_PROCESSOR_FAULT, index);
+            return NULL;
+    }
+}
+
+void VM::SetInternalRegister(int32_t index, float value) {
+    switch (index) {
+        case 0: JMP(value); break; // IP
+        case 1: EAX = value; break;
+        case 2: EBX = value; break;
+        case 3: ECX = value; break;
+        case 4: EDX = value; break;
+        case 5: ESI = value; break;
+        case 6: EDI = value; break;
+        case 7: ESP = value; break;
+        case 8: EBP = value; break;
+        case 9: ESZ = value; break;
+        case 16: CS = value; break;
+        case 17: SS = value; break;
+        case 18: DS = value; break;
+        case 19: ES = value; break;
+        case 20: GS = value; break;
+        case 21: FS = value; break;
+        case 22: KS = value; break;
+        case 23: LS = value; break;
+        case 24: IDTR = value; break;
+        case 25: CMPR = value; break;
+        case 26: break; // XEIP
+        case 27: LADD = value; break;
+        case 28: LINT = value; break;
+        case 29: break; // TMR
+        case 30: break; // TIMER
+        case 31: break; // CPAGE
+        case 32: interrupt_flag = value; break;
+        case 33: break; // PF
+        case 34: extended_flag = value; break;
+        case 35: break; // NIF
+        case 36: extended_memory_flag = value; break;
+        case 37: PTBL = value; break;
+        case 38: PTBE = value; break;
+        case 39: break; // PCAP
+        case 40: break; // RQCAP
+        case 41: break; // PPAGE
+        case 42: break; // MEMRQ
+        case 43: break; // Memory Model
+        case 44: break; // External
+        case 45: break; // Buslock
+        case 46: break; // Idle
+        case 47: break; // INTR
+        case 48: break; // Serial Number
+        case 49: break; // Code Bytes
+        case 50: break; // BPREC
+        case 51: break; // IPREC
+        case 52: break; // NIDT
+        case 53: break; // BlockStart
+        case 54: break; // BlockSize
+        case 55: break; // VMODE
+        case 56: break; // XTRL
+        case 57: break; // HaltPort
+        case 58: break; // HWDEBUG
+        case 59: break; // DBGSTATE
+        case 60: break; // DBGADDR
+        case 61: break; // CRL
+        case 62: break; // TIMERDT
+        case 63: break; // MEMADDR
+        case 64: break; // TimerMode
+        case 65: break; // TimerRate
+        case 66: break; // TimerPrevTime
+        case 67: break; // TimerAddress
+        case 68: break; // TimerPrevMode
+        case 69: break; // LASTQUO
+        case 70: break; // QUOFLAG
+        case 71: break; // PreqOperand1
+        case 72: break; // PreqOperand2
+        case 73: break; // PreqReturn
+        case 74: break; // PreqHandled
+        default:
+            if (index >= 96 && index <= 126) {
+                R[index - 17] = value;
+            } else {
+                int_vm(ERR_PROCESSOR_FAULT, index);
+            }
+            break;
     }
 }
 
 void VM::step() {
     if(interrupt_flag) return;
     
+    XEIP = IP;
     int32_t opcode = fetch();
     if(interrupt_flag) return;
 
@@ -519,7 +684,7 @@ void VM::step() {
     }
 
     if (opcode < 0 || opcode >= (sizeof(instructions) / sizeof(Instruction)) || !instructions[opcode].execute) {
-        int_vm(ERR_UNKNOWN_OPCODE);
+        int_vm(ERR_UNKNOWN_OPCODE, opcode);
     } else {
         if(instructions[opcode].operand_count == 1) {
             static float blank;
@@ -546,13 +711,15 @@ void VM::VM() {
     int i;
     for (i = 0; i < MEMORY_MODEL; i++) Memory[i] = 0;
     for (i = 0; i < 32; i++) R[i] = 0;
-    IP = CMPR = interrupt_flag = interrupt_skip = extended_flag = cli_flag = 0;
+    IP = XEIP = CMPR = interrupt_flag = interrupt_skip = LADD = LINT = extended_flag = extended_memory_flag = cli_flag = 0;
     EAX = EBX = ECX = EDX = ESI = EDI = 0;
     ESP = MEMORY_MODEL-1;
     EBP = 0;
+    ESZ = 0;
     CS = SS = DS = ES = GS = FS = KS = LS = 0;
     PTBL = PTBE = 0;
     immediate_swap = 0;
+    creation_time = clock();
 }
 
 void out_printf(char* str, ...) {
@@ -776,6 +943,6 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    emit_error("\nError: %d, IP: %ld", vm.interrupt_flag, vm.IP);
+    emit_error("\nError: %d.%f, IP: %ld", vm.interrupt_flag, vm.LADD, vm.IP);
     return 0;
 }

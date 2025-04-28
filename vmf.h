@@ -163,26 +163,32 @@ struct Instruction {
 struct VM {
     float Memory[MEMORY_MODEL];
     int32_t IP;
+    int32_t XEIP;
     float CMPR;
     int32_t IDTR;
     int32_t PTBE;
     int32_t PTBL;
     int interrupt_flag;
     int interrupt_skip;
+    int LINT;
+    float LADD;
     int cli_flag;
     int extended_flag;
+    int extended_memory_flag;
     float EAX, EBX, ECX, EDX, ESI, EDI, ESP, EBP;
     float CS, SS, DS, ES, GS, FS, KS, LS;
+    int32_t ESZ;
     float R[32]; // Extended registers
     int immediate_swap;
-    
+    clock_t creation_time;
+
     VM();
 
     void JMP(int32_t address, int32_t segment);
     void JMP(int32_t address);
     void CALL(int32_t address, int32_t segment);
     void CALL(int32_t address);
-    void int_vm(int32_t n);
+    void int_vm(int32_t n, float p);
     void Push(float n);
     float Pop();
     float* ReadCell(int32_t address, int32_t segment);
@@ -193,5 +199,7 @@ struct VM {
     float* GetOperand(int32_t rm, int32_t segment);
     float* GetRegister(int32_t index);
     float* GetSegment(int32_t index);
+    float GetInternalRegister(int32_t index);
+    void SetInternalRegister(int32_t index, float value);
     void step();
 };

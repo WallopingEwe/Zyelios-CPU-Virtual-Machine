@@ -1,5 +1,5 @@
 void END(VM* vm, float* op1, float* op2) {
-    vm->int_vm(ERR_END_EXECUTION);
+    vm->int_vm(ERR_END_EXECUTION, vm->IP);
 }
 
 void CPUID(VM* vm, float* op1, float* op2) {
@@ -116,7 +116,7 @@ void XOR(VM* vm, float* op1, float* op2) {
 }
 
 void INT(VM* vm, float* op1, float* op2) {
-    vm->int_vm(*op1);
+    vm->int_vm(*op1, 0);
 }
 
 void STI(VM* vm, float* op1, float* op2) {
@@ -161,15 +161,17 @@ void CALLF(VM* vm, float* op1, float* op2) {
 }
 
 void TIMER(VM* vm, float* op1, float* op2) {
+    clock_t now = clock();
     
+    *op1 = (now - vm->creation_time) / CLK_TCK;
 }
 
 void CPUGET(VM* vm, float* op1, float* op2) {
-    
+    *op1 = vm->GetInternalRegister(*op2);
 }
 
 void CPUSET(VM* vm, float* op1, float* op2) {
-    
+    vm->SetInternalRegister(*op1, *op2);
 }
 
 void LEA(VM* vm, float* op1, float* op2) {
