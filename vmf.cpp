@@ -829,7 +829,11 @@ int main(int argc, char *argv[]) {
     fclose(script);
 
     asm {
-        PUSHA
+        PUSH AX
+        PUSH BX
+        PUSH CX
+        PUSH DX
+
         MOV AH, 7
         XOR AL, AL
         XOR CX, CX
@@ -837,7 +841,11 @@ int main(int argc, char *argv[]) {
         MOV DH, 25
         MOV DL, 80
         INT 010h
-        POPA
+        
+        POP DX
+        POP CX
+        POP BX
+        POP AX
     }
 
     out_printf("Loaded bytecode (%ld values):\n", count);
