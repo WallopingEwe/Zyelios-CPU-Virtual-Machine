@@ -24,6 +24,22 @@ void JMP(VM* vm, float* op1, float* op2) {
     vm->JMP(*op1);
 }
 
+void JMPR(VM* vm, float* op1, float* op2) {
+    vm->JMP(vm->IP + *op1);
+}
+
+void JUMPF(VM* vm, float* op1, float* op2) {
+    vm->JMP(*op1, *op2);
+}
+
+void CALL(VM* vm, float* op1, float* op2) {
+    vm->CALL(*op1);
+}
+
+void CALLF(VM* vm, float* op1, float* op2) {
+    vm->CALL(*op1, *op2);
+}
+
 void JG(VM* vm, float* op1, float* op2) {
     if (vm->CMPR > 0) {
         vm->JMP(*op1);

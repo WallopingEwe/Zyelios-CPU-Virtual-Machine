@@ -85,10 +85,6 @@ void NOP(VM* vm, float* op1, float* op2) {
     
 }
 
-void JMPR(VM* vm, float* op1, float* op2) {
-    vm->JMP(vm->IP + *op1);
-}
-
 void LNEG(VM* vm, float* op1, float* op2) {
     *op1 = !*op1;
 }
@@ -127,14 +123,6 @@ void CLI(VM* vm, float* op1, float* op2) {
     vm->cli_flag = 1;
 }
 
-void JUMPF(VM* vm, float* op1, float* op2) {
-    vm->JMP(*op1, *op2);
-}
-
-void CALL(VM* vm, float* op1, float* op2) {
-    vm->CALL(*op1);
-}
-
 void RET(VM* vm, float* op1, float* op2) {
     float ip = vm->Pop();
     if (vm->interrupt_flag) return;
@@ -154,10 +142,6 @@ void IN(VM* vm, float* op1, float* op2) {
 
 void OUT(VM* vm, float* op1, float* op2) {
     outportb(*op1, *op2);
-}
-
-void CALLF(VM* vm, float* op1, float* op2) {
-    vm->CALL(*op1, *op2);
 }
 
 void TIMER(VM* vm, float* op1, float* op2) {
