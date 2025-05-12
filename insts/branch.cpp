@@ -40,8 +40,53 @@ void CALLF(VM* vm, float* op1, float* op2) {
     vm->CALL(*op1, *op2);
 }
 
+void RET(VM* vm, float* op1, float* op2) {
+    float ip = vm->Pop();
+    if (vm->interrupt_flag) return;
+
+    vm->JMP(ip);
+}
+
+void RETF(VM* vm, float* op1, float* op2) {
+    float ip = vm->Pop();
+    if (vm->interrupt_flag) return;
+
+    float cs = vm->Pop();
+    if (vm->interrupt_flag) return;
+
+    vm->JMP(ip, cs);
+}
+
 void JG(VM* vm, float* op1, float* op2) {
     if (vm->CMPR > 0) {
+        vm->JMP(*op1);
+    }
+}
+
+void LOOP(VM* vm, float* op1, float* op2) {
+    vm->ECX--;
+    if (vm->ECX) {
+        vm->JMP(*op1);
+    }
+}
+
+void LOOPA(VM* vm, float* op1, float* op2) {
+    vm->EAX--;
+    if (vm->EAX) {
+        vm->JMP(*op1);
+    }
+}
+
+void LOOPB(VM* vm, float* op1, float* op2) {
+    vm->EBX--;
+    if (vm->EBX) {
+        vm->JMP(*op1);
+    }
+}
+
+void LOOPD(VM* vm, float* op1, float* op2) {
+    vm->EDX--;
+    if (vm->EDX) {
         vm->JMP(*op1);
     }
 }

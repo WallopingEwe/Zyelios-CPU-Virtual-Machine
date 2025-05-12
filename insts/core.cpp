@@ -49,34 +49,6 @@ void RAND(VM* vm, float* op1, float* op2) {
     *op1 = rand();
 }
 
-void LOOP(VM* vm, float* op1, float* op2) {
-    vm->ECX--;
-    if (vm->ECX) {
-        vm->JMP(*op1);
-    }
-}
-
-void LOOPA(VM* vm, float* op1, float* op2) {
-    vm->EAX--;
-    if (vm->EAX) {
-        vm->JMP(*op1);
-    }
-}
-
-void LOOPB(VM* vm, float* op1, float* op2) {
-    vm->EBX--;
-    if (vm->EBX) {
-        vm->JMP(*op1);
-    }
-}
-
-void LOOPD(VM* vm, float* op1, float* op2) {
-    vm->EDX--;
-    if (vm->EDX) {
-        vm->JMP(*op1);
-    }
-}
-
 void IDLE(VM* vm, float* op1, float* op2) {
     
 }
@@ -87,16 +59,6 @@ void NOP(VM* vm, float* op1, float* op2) {
 
 void LNEG(VM* vm, float* op1, float* op2) {
     *op1 = !*op1;
-}
-
-void RETF(VM* vm, float* op1, float* op2) {
-    float ip = vm->Pop();
-    if (vm->interrupt_flag) return;
-
-    float cs = vm->Pop();
-    if (vm->interrupt_flag) return;
-
-    vm->JMP(ip, cs);
 }
 
 void AND(VM* vm, float* op1, float* op2) {
@@ -121,13 +83,6 @@ void STI(VM* vm, float* op1, float* op2) {
 
 void CLI(VM* vm, float* op1, float* op2) {
     vm->cli_flag = 1;
-}
-
-void RET(VM* vm, float* op1, float* op2) {
-    float ip = vm->Pop();
-    if (vm->interrupt_flag) return;
-
-    vm->JMP(ip);
 }
 
 void XCHG(VM* vm, float* op1, float* op2) {
