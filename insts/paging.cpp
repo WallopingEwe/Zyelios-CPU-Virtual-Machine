@@ -77,7 +77,7 @@ void IRETP(VM* vm, float* op1, float* op2) {
     int32_t ip = vm->Pop();
     if(vm->interrupt_flag) return;
     
-    PTBL = *op1;
+    vm->PTBL = *op1;
     vm->JMP(ip, cs);
 }
 
