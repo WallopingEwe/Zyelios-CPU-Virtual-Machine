@@ -118,7 +118,8 @@ void LEA(VM* vm, float* op1, float* op2) {
 }
 
 void BLOCK(VM* vm, float* op1, float* op2) {
-    
+    vm->BLOCKSTART = *op1;
+    vm->BLOCKSIZE = *op2;
 }
 
 void STERR(VM* vm, float* op1, float* op2) {

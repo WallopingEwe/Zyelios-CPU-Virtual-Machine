@@ -57,6 +57,10 @@ void RETF(VM* vm, float* op1, float* op2) {
     vm->JMP(ip, cs);
 }
 
+void EXTRETA(VM* vm, float* op1, float* op2) {
+    
+}
+
 void JG(VM* vm, float* op1, float* op2) {
     if (vm->CMPR > 0) {
         vm->JMP(*op1);

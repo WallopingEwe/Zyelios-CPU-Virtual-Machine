@@ -51,8 +51,8 @@ Instruction instructions[] = {
     { 25, 1, LOOPA },
     { 26, 1, LOOPB },
     { 27, 1, LOOPD },
-    { 28, 0, SPG },
-    { 29, 0, CPG },
+    { 28, 1, SPG },
+    { 29, 1, CPG },
     { 30, 1, POP },
     { 31, 1, CALL },
     { 32, 1, BNOT },
@@ -145,17 +145,17 @@ Instruction instructions[] = {
     { 119, 0, CLM },
     { 120, 2, CPUGET },
     { 121, 2, CPUSET },
-    { 122, 0, SPP },
-    { 123, 0, CPP },
-    { 124, 0, SRL },
-    { 125, 0, CRL },
+    { 122, 2, SPP },
+    { 123, 2, CPP },
+    { 124, 2, SRL },
+    { 125, 2, CRL },
     { 126, 0, LEA },
-    { 127, 0, BLOCK },
+    { 127, 2, BLOCK },
     { 128, 2, CMPAND },
     { 129, 2, CMPOR },
     { 130, 0, MSHIFT },
-    { 131, 0, SMAP },
-    { 132, 0, GMAP },
+    { 131, 2, SMAP },
+    { 132, 2, GMAP },
     { 133, 2, RSTACK },
     { 134, 2, SSTACK },
     { 135, 1, ENTER },
@@ -290,12 +290,97 @@ float VM::Pop() {
     return Memory[address];
 }
 
+void VM::GetPage(int32_t index, Page* page, int32_t* map) {
+    if(PCAP && extended_memory_flag) {
+        int32_t pageEntry;
+
+        if(index >= PTBE || index < 0) {
+            pageEntry = PTBL;
+        } else {
+            pageEntry = PTBL + (index + 1) * 2;
+        }
+
+        PCAP = 0;
+        page->raw = *ReadCell(pageEntry);
+        *map = *ReadCell(pageEntry + 1);
+        PCAP = 1;
+
+        if(!page->raw || !*map) {
+            int_vm(ERR_PROCESSOR_FAULT, 8);
+        }
+    }
+}
+
+void VM::SetPage(int32_t index, int32_t mask, int32_t map) {
+    if(PCAP && extended_memory_flag) {
+        int32_t pageEntry;
+
+        if(index >= PTBE || index < 0) {
+            pageEntry = PTBL;
+        } else {
+            pageEntry = PTBL + (index + 1) * 2;
+        }
+
+        PCAP = 0;
+        WriteCell(pageEntry, mask);
+        WriteCell(pageEntry + 1, map);
+        PCAP = 1;
+    }
+}
+
 float* VM::ReadCell(int32_t address, int32_t segment) {
     address += segment;
 
     if (address < 0 || address >= MEMORY_MODEL) {
         int_vm(ERR_MEMORY_FAULT, address);
         return nullptr;
+    }
+
+    if(PCAP && extended_memory_flag) {
+        Page curPage;
+        int32_t curMap;
+        GetPage(IP / 128, &curPage, &curMap);
+        if(interrupt_flag) return nullptr;
+        int32_t index = address / 128;
+        Page page;
+        int32_t map;
+        GetPage(index, &page, &map);
+        if(interrupt_flag) return nullptr;
+
+        if(page.bits.trapped) {
+            int_vm(ERR_PAGE_TRAPPED, address);
+            return nullptr;
+        }
+        
+        if(page.bits.disabled) {
+            int_vm(ERR_MEMORY_FAULT, address);
+            return nullptr;
+        }
+
+
+        if(extended_flag && curPage.bits.runlevel > page.bits.runlevel && !page.bits.read) {
+            int_vm(ERR_READ_VIOLATION, address);
+            return nullptr;
+        }
+
+        if(page.bits.remapped && map != index) {
+            address = address % 128 + map * 128;
+        }
+
+        if(page.bits.override) {
+            if(MEMRQ == 4) {
+                static float immediate = LADD;
+                MEMRQ = 0;
+                return &immediate;
+            } else {
+                MEMRQ = 2;
+                MEMADDR = address;
+                LADD = Memory[address];
+
+                int_vm(READ_REQUEST, 0);
+                return nullptr;
+            }
+        }
     }
 
     return &Memory[address];
@@ -309,6 +394,53 @@ float* VM::ReadCell(int32_t address) {
         return nullptr;
     }
 
+    if(PCAP && extended_memory_flag) {
+        Page curPage;
+        int32_t curMap;
+        GetPage(IP / 128, &curPage, &curMap);
+        if(interrupt_flag) return nullptr;
+
+        int32_t index = address / 128;
+        Page page;
+        int32_t map;
+        GetPage(index, &page, &map);
+        if(interrupt_flag) return nullptr;
+
+        if(page.bits.trapped) {
+            int_vm(ERR_PAGE_TRAPPED, address);
+            return nullptr;
+        }
+        
+        if(page.bits.disabled) {
+            int_vm(ERR_MEMORY_FAULT, address);
+            return nullptr;
+        }
+
+        if(extended_flag && curPage.bits.runlevel > page.bits.runlevel && !page.bits.read) {
+            int_vm(ERR_READ_VIOLATION, address);
+            return nullptr;
+        }
+
+        if(page.bits.remapped && map != index) {
+            address = address % 128 + map * 128;
+        }
+
+        if(page.bits.override) {
+            if(MEMRQ == 4) {
+                static float immediate = LADD;
+                MEMRQ = 0;
+                return &immediate;
+            } else {
+                MEMRQ = 2;
+                MEMADDR = address;
+                LADD = Memory[address];
+
+                int_vm(READ_REQUEST, 0);
+                return nullptr;
+            }
+        }
+    }
+
     return &Memory[address];
 }
     
@@ -318,6 +450,55 @@ void VM::WriteCell(int32_t address, int32_t segment, int32_t value) {
     if (address < 0 || address >= MEMORY_MODEL) {
         int_vm(ERR_MEMORY_FAULT, address);
         return;
+    }
+
+    if(PCAP && extended_memory_flag) {
+        Page curPage;
+        int32_t curMap;
+        GetPage(IP / 128, &curPage, &curMap);
+        if(interrupt_flag) return;
+        int32_t index = address / 128;
+        Page page;
+        int32_t map;
+        GetPage(index, &page, &map);
+        if(interrupt_flag) return;
+
+        if(page.bits.trapped) {
+            int_vm(ERR_PAGE_TRAPPED, address);
+            return;
+        }
+        
+        if(page.bits.disabled) {
+            int_vm(ERR_MEMORY_FAULT, address);
+            return;
+        }
+
+        if(page.bits.override) {
+            if(MEMRQ == 6) {
+                MEMRQ = 0;
+                return;
+            } else if(MEMRQ == 5) {
+                MEMRQ = 0;
+                address = MEMADDR;
+                value = LADD;
+            } else {
+                MEMRQ = 3;
+                MEMADDR = address;
+                LADD = value;
+
+                int_vm(WRITE_REQUEST, LADD);
+                return;
+            }
+        }
+
+        if(extended_flag && curPage.bits.runlevel > page.bits.runlevel && !page.bits.read) {
+            int_vm(ERR_WRITE_VIOLATION, address);
+            return;
+        }
+
+        if(page.bits.remapped && map != index) {
+            address = address % 128 + map * 128;
+        }
     }
 
     Memory[address] = value;
@@ -331,6 +512,55 @@ void VM::WriteCell(int32_t address, int32_t value) {
         return;
     }
 
+    if(PCAP && extended_memory_flag) {
+        Page curPage;
+        int32_t curMap;
+        GetPage(IP / 128, &curPage, &curMap);
+        if(interrupt_flag) return;
+        int32_t index = address / 128;
+        Page page;
+        int32_t map;
+        GetPage(index, &page, &map);
+        if(interrupt_flag) return;
+
+        if(page.bits.trapped) {
+            int_vm(ERR_PAGE_TRAPPED, address);
+            return;
+        }
+        
+        if(page.bits.disabled) {
+            int_vm(ERR_MEMORY_FAULT, address);
+            return;
+        }
+
+        if(page.bits.override) {
+            if(MEMRQ == 6) {
+                MEMRQ = 0;
+                return;
+            } else if(MEMRQ == 5) {
+                MEMRQ = 0;
+                address = MEMADDR;
+                value = LADD;
+            } else {
+                MEMRQ = 3;
+                MEMADDR = address;
+                LADD = value;
+
+                int_vm(WRITE_REQUEST, LADD);
+                return;
+            }
+        }
+
+        if(extended_flag && curPage.bits.runlevel > page.bits.runlevel && !page.bits.read) {
+            int_vm(ERR_WRITE_VIOLATION, address);
+            return;
+        }
+
+        if(page.bits.remapped && map != index) {
+            address = address % 128 + map * 128;
+        }
+    }
+
     Memory[address] = value;
 }
 
@@ -342,10 +572,8 @@ float VM::fetch() {
         return 0;
     }
 
-    float value = Memory[address];
     IP++; 
-
-    return value;
+    return Memory[address];
 }
 
 float* VM::GetOperand(int32_t rm, int32_t segment) {
@@ -506,10 +734,10 @@ float VM::GetInternalRegister(int32_t index) {
         case 36: return extended_memory_flag;
         case 37: return PTBL;
         case 38: return PTBE;
-        case 39: return 0; // PCAP
+        case 39: return PCAP; // PCAP
         case 40: return 0; // RQCAP
         case 41: return 0; // PPAGE
-        case 42: return 0; // MEMRQ
+        case 42: return MEMRQ;
         case 43: return MEMORY_MODEL;
         case 44: return 0; // External
         case 45: return 0; // Buslock
@@ -520,8 +748,8 @@ float VM::GetInternalRegister(int32_t index) {
         case 50: return 0; // BPREC
         case 51: return 0; // IPREC
         case 52: return 0; // NIDT
-        case 53: return 0; // BlockStart
-        case 54: return 0; // BlockSize
+        case 53: return BLOCKSTART;
+        case 54: return BLOCKSIZE;
         case 55: return 0; // VMODE
         case 56: return 0; // XTRL
         case 57: return 0; // HaltPort
@@ -530,7 +758,7 @@ float VM::GetInternalRegister(int32_t index) {
         case 60: return 0; // DBGADDR
         case 61: return 0; // CRL
         case 62: return 0; // TIMERDT
-        case 63: return 0; // MEMADDR
+        case 63: return MEMADDR;
         case 64: return 0; // TimerMode
         case 65: return 0; // TimerRate
         case 66: return 0; // TimerPrevTime
@@ -538,10 +766,10 @@ float VM::GetInternalRegister(int32_t index) {
         case 68: return 0; // TimerPrevMode
         case 69: return 0; // LASTQUO
         case 70: return 0; // QUOFLAG
-        case 71: return 0; // PreqOperand1
-        case 72: return 0; // PreqOperand2
-        case 73: return 0; // PreqReturn
-        case 74: return 0; // PreqHandled
+        case 71: return PreqOperand1;
+        case 72: return PreqOperand2;
+        case 73: return PreqReturn;
+        case 74: return PreqHandled;
         default:
             if (index >= 96 && index <= 126) {
                 return R[index - 17];
@@ -601,8 +829,8 @@ void VM::SetInternalRegister(int32_t index, float value) {
         case 50: break; // BPREC
         case 51: break; // IPREC
         case 52: break; // NIDT
-        case 53: break; // BlockStart
-        case 54: break; // BlockSize
+        case 53: BLOCKSTART = value; break;
+        case 54: BLOCKSIZE = value; break;
         case 55: break; // VMODE
         case 56: break; // XTRL
         case 57: break; // HaltPort
@@ -619,10 +847,10 @@ void VM::SetInternalRegister(int32_t index, float value) {
         case 68: break; // TimerPrevMode
         case 69: break; // LASTQUO
         case 70: break; // QUOFLAG
-        case 71: break; // PreqOperand1
-        case 72: break; // PreqOperand2
-        case 73: break; // PreqReturn
-        case 74: break; // PreqHandled
+        case 71: PreqOperand1 = value; break;
+        case 72: PreqOperand2 = value; break;
+        case 73: PreqReturn = value; break;
+        case 74: PreqHandled = value; break;
         default:
             if (index >= 96 && index <= 126) {
                 R[index - 17] = value;
@@ -718,8 +946,13 @@ void VM::VM() {
     ESZ = 0;
     CS = SS = DS = ES = GS = FS = KS = LS = 0;
     PTBL = PTBE = 0;
+    PCAP = 1;
     immediate_swap = 0;
     creation_time = clock();
+    MEMRQ = MEMADDR = 0;
+    BLOCKSTART = BLOCKSIZE = 0;
+    PreqHandled = -1;
+    PreqOperand1 = PreqOperand2 = PreqReturn = 0;
 }
 
 void out_printf(char* str, ...) {

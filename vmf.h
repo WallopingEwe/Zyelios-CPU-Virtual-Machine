@@ -151,13 +151,32 @@ enum ErrorCodes {
     ERR_READ_VIOLATION = 12,      // Read access violation
     ERR_PROCESSOR_FAULT = 13,     // General processor fault
     ERR_EXECUTE_VIOLATION = 14,   // Execute access violation
-    ERR_ADDRESS_VIOLATION = 15    // Address space violation
+    ERR_ADDRESS_VIOLATION = 15,   // Address space violation
+    READ_REQUEST = 28,            // Read Request
+    WRITE_REQUEST = 29,           // Write Request
+    ERR_PAGE_TRAPPED = 30         // Page is trapped
 };
 
 struct Instruction {
     int opcode;
     int operand_count;
     void (*execute)(VM* vm, float* op1, float* op2);
+};
+
+union Page {
+    struct {
+        unsigned int disabled : 1; // 0
+        unsigned int remapped : 1; // 1
+        unsigned int trapped : 1; // 2
+        unsigned int override : 1; // 3
+        unsigned int unused : 1; // 4
+        unsigned int read : 1; // 5
+        unsigned int write : 1; // 6
+        unsigned int execute : 1; // 7
+        unsigned int runlevel : 16;
+    } bits;
+ 
+    uint32_t raw;
 };
 
 struct VM {
@@ -168,10 +187,15 @@ struct VM {
     int32_t IDTR;
     int32_t PTBE;
     int32_t PTBL;
+    int PCAP;
     int interrupt_flag;
     int interrupt_skip;
     int LINT;
     float LADD;
+    int32_t MEMRQ;
+    int32_t MEMADDR;
+    int32_t BLOCKSTART;
+    int32_t BLOCKSIZE;
     int cli_flag;
     int extended_flag;
     int extended_memory_flag;
@@ -181,6 +205,10 @@ struct VM {
     float R[32]; // Extended registers
     int immediate_swap;
     clock_t creation_time;
+    float PreqHandled;
+    int32_t PreqOperand1;
+    float PreqOperand2;
+    float PreqReturn;
 
     VM();
 
@@ -191,6 +219,8 @@ struct VM {
     void int_vm(int32_t n, float p);
     void Push(float n);
     float Pop();
+    void GetPage(int32_t index, Page* page, int32_t* map);
+    void SetPage(int32_t index, int32_t mask, int32_t map);
     float* ReadCell(int32_t address, int32_t segment);
     float* ReadCell(int32_t address);
     void WriteCell(int32_t address, int32_t segment, int32_t value);
