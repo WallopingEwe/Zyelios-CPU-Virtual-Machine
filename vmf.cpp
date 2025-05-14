@@ -159,7 +159,7 @@ Instruction instructions[] = {
     { 133, 2, RSTACK },
     { 134, 2, SSTACK },
     { 135, 1, ENTER },
-    { 136, 0, IRETP },
+    { 136, 1, IRETP },
     { 137, 0, EXTRETP },
     { 138, 0, 0 },
     { 139, 0, 0 },
