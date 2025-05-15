@@ -1049,7 +1049,20 @@ int main(int argc, char *argv[]) {
 
     while (!feof(script)) {
         float value;
+        int c1 = fgetc(script);
+        int c2 = fgetc(script);
 
+        if (c1 == 'd' && c2 == 'b') {
+            continue;
+        } else {
+            if(c2 != -1) {
+                fseek(script, -1, SEEK_CUR);
+            }
+            
+            if(c1 != -1) {
+                fseek(script, -1, SEEK_CUR);
+            }
+        }
         if (fscanf(script, "%f,", &value) == 1) {
             if (count >= MEMORY_MODEL) {
                 break;
@@ -1083,7 +1096,7 @@ int main(int argc, char *argv[]) {
 
     out_printf("Loaded bytecode (%ld values):\n", count);
     for (size_t i = 0; i < count; i++) {
-        //out_printf("%f ", vm.Memory[i]);
+        out_printf("%f ", vm.Memory[i]);
     }
     out_printf("\n");
 
