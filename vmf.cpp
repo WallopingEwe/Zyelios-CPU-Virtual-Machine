@@ -1063,6 +1063,7 @@ int main(int argc, char *argv[]) {
                 fseek(script, -1, SEEK_CUR);
             }
         }
+        
         if (fscanf(script, "%f,", &value) == 1) {
             if (count >= MEMORY_MODEL) {
                 break;
