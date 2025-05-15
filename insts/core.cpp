@@ -114,7 +114,13 @@ void CPUSET(VM* vm, float* op1, float* op2) {
 }
 
 void LEA(VM* vm, float* op1, float* op2) {
-    
+    int32_t address = op2 - vm->Memory;
+    if(address < 0 || address >= MEMORY_MODEL) {
+        vm->int_vm(ERR_PROCESSOR_FAULT, 0);
+        return;
+    }
+
+    *op1 = address;
 }
 
 void BLOCK(VM* vm, float* op1, float* op2) {

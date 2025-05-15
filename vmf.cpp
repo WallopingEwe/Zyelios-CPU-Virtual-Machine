@@ -149,7 +149,7 @@ Instruction instructions[] = {
     { 123, 2, CPP },
     { 124, 2, SRL },
     { 125, 2, CRL },
-    { 126, 0, LEA },
+    { 126, 2, LEA },
     { 127, 2, BLOCK },
     { 128, 2, CMPAND },
     { 129, 2, CMPOR },
@@ -1063,7 +1063,7 @@ int main(int argc, char *argv[]) {
                 fseek(script, -1, SEEK_CUR);
             }
         }
-        
+
         if (fscanf(script, "%f,", &value) == 1) {
             if (count >= MEMORY_MODEL) {
                 break;
@@ -1097,7 +1097,7 @@ int main(int argc, char *argv[]) {
 
     out_printf("Loaded bytecode (%ld values):\n", count);
     for (size_t i = 0; i < count; i++) {
-        out_printf("%f ", vm.Memory[i]);
+        // out_printf("%f ", vm.Memory[i]);
     }
     out_printf("\n");
 
