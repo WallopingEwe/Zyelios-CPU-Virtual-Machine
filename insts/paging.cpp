@@ -43,13 +43,7 @@ void GMAP(VM* vm, float* op1, float* op2) {
             vm->PreqReturn = 0;
             vm->PreqHandled = 0;
         } else if(vm->PreqHandled == 0) {
-            vm->PreqOperand1 = *op1;
-            vm->PreqOperand2 = *op2;
-            vm->PreqReturn = 0;
-            vm->PreqHandled = -1;
-
-            vm->IP = vm->XEIP;
-            vm->int_vm(ERR_PROCESSOR_FAULT, 132);
+            vm->PrivilegeRequest(*op1, *op2, 132);
         } else {
             vm->PreqHandled = 0;
         }
