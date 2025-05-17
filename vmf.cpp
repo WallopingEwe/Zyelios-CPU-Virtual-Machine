@@ -23,160 +23,160 @@ int far* screen_ptr = (int far*)MK_FP(0xb800,0);
 int far* print_ptr = (int far*)MK_FP(0xb800,0);
 
 Instruction instructions[] = {
-    { 0, 0, END },
-    { 1, 1, JNE },
-    { 2, 1, JMP },
-    { 3, 1, JG },
-    { 4, 1, JGE },
-    { 5, 1, JL },
-    { 6, 1, JLE },
-    { 7, 1, JE },
-    { 8, 0, CPUID },
-    { 9, 1, PUSH },
-    { 10, 2, ADD },
-    { 11, 2, SUB },
-    { 12, 2, MUL },
-    { 13, 2, DIV },
-    { 14, 2, MOV },
-    { 15, 2, CMP },
-    { 16, 0, 0 },
-    { 17, 0, 0 },
-    { 18, 2, MIN },
-    { 19, 2, MAX },
-    { 20, 1, INC },
-    { 21, 1, DEC },
-    { 22, 1, NEG },
-    { 23, 1, RAND },
-    { 24, 1, LOOP },
-    { 25, 1, LOOPA },
-    { 26, 1, LOOPB },
-    { 27, 1, LOOPD },
-    { 28, 1, SPG },
-    { 29, 1, CPG },
-    { 30, 1, POP },
-    { 31, 1, CALL },
-    { 32, 1, BNOT },
-    { 33, 1, FINT },
-    { 34, 1, RND },
-    { 35, 1, FFRAC },
-    { 36, 1, FINV },
-    { 37, 0, 0 },
-    { 38, 1, FSHL },
-    { 39, 1, FSHR },
-    { 40, 0, RET },
-    { 41, 0, IRET },
-    { 42, 0, STI },
-    { 43, 0, CLI },
-    { 44, 0, 0 },
-    { 45, 0, 0 },
-    { 46, 0, 0 },
-    { 47, 0, RETF },
-    { 48, 0, STEF },
-    { 49, 0, CLEF },
-    { 50, 2, AND },
-    { 51, 2, OR },
-    { 52, 2, XOR },
-    { 53, 2, FSIN },
-    { 54, 2, FCOS },
-    { 55, 2, FTAN },
-    { 56, 2, FASIN },
-    { 57, 2, FACOS },
-    { 58, 2, FATAN },
-    { 59, 2, MOD },
-    { 60, 2, BIT },
-    { 61, 2, SBIT },
-    { 62, 2, CBIT },
-    { 63, 2, TBIT },
-    { 64, 2, BAND },
-    { 65, 2, BOR },
-    { 66, 0, 0 },
-    { 67, 2, BSHL },
-    { 68, 0, BSHR },
-    { 69, 2, JUMPF },
-    { 70, 0, EXTINT },
-    { 71, 1, CNE },
-    { 72, 0, 0 },
-    { 73, 1, CG },
-    { 74, 1, CGE },
-    { 75, 1, CL },
-    { 76, 1, CLE },
-    { 77, 1, CE },
-    { 78, 1, MCOPY },
-    { 79, 1, MXCHG },
-    { 80, 2, FPWR },
-    { 81, 2, XCHG },
-    { 82, 2, FLOG },
-    { 83, 2, FLOG10 },
-    { 84, 2, IN },
-    { 85, 2, OUT },
-    { 86, 2, FABS },
-    { 87, 2, FSGN },
-    { 88, 2, FEXP },
-    { 89, 2, CALLF },
-    { 90, 1, FPI },
-    { 91, 1, FE },
-    { 92, 1, INT },
-    { 93, 0, TPG },
-    { 94, 1, FCEIL },
-    { 95, 0, ERPG },
-    { 96, 0, WRPG },
-    { 97, 0, RDPG },
-    { 98, 1, TIMER },
-    { 99, 1, LIDTR },
-    { 100, 0, 0 },
-    { 101, 1, JNER },
-    { 102, 1, JMPR },
-    { 103, 1, JGR },
-    { 104, 1, JGER },
-    { 105, 1, JLR },
-    { 106, 1, JLER },
-    { 107, 1, JER },
-    { 108, 1, LNEG },
-    { 109, 0, 0 },
-    { 110, 0, EXTRET },
-    { 111, 0, IDLE },
-    { 112, 0, NOP },
-    { 113, 0, 0 },
-    { 114, 0, PUSHA },
-    { 115, 0, POPA },
-    { 116, 0, STD2 },
-    { 117, 0, LEAVE },
-    { 118, 0, STM },
-    { 119, 0, CLM },
-    { 120, 2, CPUGET },
-    { 121, 2, CPUSET },
-    { 122, 2, SPP },
-    { 123, 2, CPP },
-    { 124, 2, SRL },
-    { 125, 2, CRL },
-    { 126, 2, LEA },
-    { 127, 2, BLOCK },
-    { 128, 2, CMPAND },
-    { 129, 2, CMPOR },
-    { 130, 0, MSHIFT },
-    { 131, 2, SMAP },
-    { 132, 2, GMAP },
-    { 133, 2, RSTACK },
-    { 134, 2, SSTACK },
-    { 135, 1, ENTER },
-    { 136, 1, IRETP },
-    { 137, 0, EXTRETP },
-    { 138, 0, 0 },
-    { 139, 0, 0 },
-    { 140, 0, EXTRETA },
-    { 141, 0, EXTRETPA },
-    { 142, 0, 0 },
-    { 143, 0, 0 },
-    { 144, 0, 0 },
-    { 145, 0, 0 },
-    { 146, 0, 0 },
-    { 147, 0, 0 },
-    { 148, 0, 0 },
-    { 149, 0, 0 },
-    { 150, 0, STERR },
-    { 151, 0, CLERR },
-    { 152, 0, QUOCMP },
-    { 153, 0, QUOTIMER },
+    { 0, 0, 0, END },
+    { 1, 1, 0, JNE },
+    { 2, 1, 0, JMP },
+    { 3, 1, 0, JG },
+    { 4, 1, 0, JGE },
+    { 5, 1, 0, JL },
+    { 6, 1, 0, JLE },
+    { 7, 1, 0, JE },
+    { 8, 0, 0, CPUID },
+    { 9, 1, 0, PUSH },
+    { 10, 2, 0, ADD },
+    { 11, 2, 0, SUB },
+    { 12, 2, 0, MUL },
+    { 13, 2, 0, DIV },
+    { 14, 2, 0, MOV },
+    { 15, 2, 0, CMP },
+    { 16, 0, 0, 0 },
+    { 17, 0, 0, 0 },
+    { 18, 2, 0, MIN },
+    { 19, 2, 0, MAX },
+    { 20, 1, 0, INC },
+    { 21, 1, 0, DEC },
+    { 22, 1, 0, NEG },
+    { 23, 1, 0, RAND },
+    { 24, 1, 0, LOOP },
+    { 25, 1, 0, LOOPA },
+    { 26, 1, 0, LOOPB },
+    { 27, 1, 0, LOOPD },
+    { 28, 1, 0, SPG },
+    { 29, 1, 0, CPG },
+    { 30, 1, 0, POP },
+    { 31, 1, 0, CALL },
+    { 32, 1, 0, BNOT },
+    { 33, 1, 0, FINT },
+    { 34, 1, 0, RND },
+    { 35, 1, 0, FFRAC },
+    { 36, 1, 0, FINV },
+    { 37, 0, 0, 0 },
+    { 38, 1, 0, FSHL },
+    { 39, 1, 0, FSHR },
+    { 40, 0, 0, RET },
+    { 41, 0, 0, IRET },
+    { 42, 0, 0, STI },
+    { 43, 0, 0, CLI },
+    { 44, 0, 0, 0 },
+    { 45, 0, 0, 0 },
+    { 46, 0, 0, 0 },
+    { 47, 0, 0, RETF },
+    { 48, 0, 0, STEF },
+    { 49, 0, 0, CLEF },
+    { 50, 2, 0, AND },
+    { 51, 2, 0, OR },
+    { 52, 2, 0, XOR },
+    { 53, 2, 0, FSIN },
+    { 54, 2, 0, FCOS },
+    { 55, 2, 0, FTAN },
+    { 56, 2, 0, FASIN },
+    { 57, 2, 0, FACOS },
+    { 58, 2, 0, FATAN },
+    { 59, 2, 0, MOD },
+    { 60, 2, 0, BIT },
+    { 61, 2, 0, SBIT },
+    { 62, 2, 0, CBIT },
+    { 63, 2, 0, TBIT },
+    { 64, 2, 0, BAND },
+    { 65, 2, 0, BOR },
+    { 66, 0, 0, 0 },
+    { 67, 2, 0, BSHL },
+    { 68, 0, 0, BSHR },
+    { 69, 2, 0, JUMPF },
+    { 70, 0, 0, EXTINT },
+    { 71, 1, 0, CNE },
+    { 72, 0, 0, 0 },
+    { 73, 1, 0, CG },
+    { 74, 1, 0, CGE },
+    { 75, 1, 0, CL },
+    { 76, 1, 0, CLE },
+    { 77, 1, 0, CE },
+    { 78, 1, 0, MCOPY },
+    { 79, 1, 0, MXCHG },
+    { 80, 2, 0, FPWR },
+    { 81, 2, 0, XCHG },
+    { 82, 2, 0, FLOG },
+    { 83, 2, 0, FLOG10 },
+    { 84, 2, 0, IN },
+    { 85, 2, 0, OUT },
+    { 86, 2, 0, FABS },
+    { 87, 2, 0, FSGN },
+    { 88, 2, 0, FEXP },
+    { 89, 2, 0, CALLF },
+    { 90, 1, 0, FPI },
+    { 91, 1, 0, FE },
+    { 92, 1, 0, INT },
+    { 93, 0, 0, TPG },
+    { 94, 1, 0, FCEIL },
+    { 95, 0, 0, ERPG },
+    { 96, 0, 0, WRPG },
+    { 97, 0, 0, RDPG },
+    { 98, 1, 0, TIMER },
+    { 99, 1, 0, LIDTR },
+    { 100, 0, 0, 0 },
+    { 101, 1, 0, JNER },
+    { 102, 1, 0, JMPR },
+    { 103, 1, 0, JGR },
+    { 104, 1, 0, JGER },
+    { 105, 1, 0, JLR },
+    { 106, 1, 0, JLER },
+    { 107, 1, 0, JER },
+    { 108, 1, 0, LNEG },
+    { 109, 0, 0, 0 },
+    { 110, 0, 0, EXTRET },
+    { 111, 0, 0, IDLE },
+    { 112, 0, 0, NOP },
+    { 113, 0, 0, 0 },
+    { 114, 0, 0, PUSHA },
+    { 115, 0, 0, POPA },
+    { 116, 0, 0, STD2 },
+    { 117, 0, 0, LEAVE },
+    { 118, 0, 0, STM },
+    { 119, 0, 0, CLM },
+    { 120, 2, 0, CPUGET },
+    { 121, 2, 0, CPUSET },
+    { 122, 2, 0, SPP },
+    { 123, 2, 0, CPP },
+    { 124, 2, 0, SRL },
+    { 125, 2, 0, CRL },
+    { 126, 2, 0, LEA },
+    { 127, 2, 0, BLOCK },
+    { 128, 2, 0, CMPAND },
+    { 129, 2, 0, CMPOR },
+    { 130, 0, 0, MSHIFT },
+    { 131, 2, 0, SMAP },
+    { 132, 2, 0, GMAP },
+    { 133, 2, 0, RSTACK },
+    { 134, 2, 0, SSTACK },
+    { 135, 1, 0, ENTER },
+    { 136, 1, 0, IRETP },
+    { 137, 0, 0, EXTRETP },
+    { 138, 0, 0, 0 },
+    { 139, 0, 0, 0 },
+    { 140, 0, 0, EXTRETA },
+    { 141, 0, 0, EXTRETPA },
+    { 142, 0, 0, 0 },
+    { 143, 0, 0, 0 },
+    { 144, 0, 0, 0 },
+    { 145, 0, 0, 0 },
+    { 146, 0, 0, 0 },
+    { 147, 0, 0, 0 },
+    { 148, 0, 0, 0 },
+    { 149, 0, 0, 0 },
+    { 150, 0, 0, STERR },
+    { 151, 0, 0, CLERR },
+    { 152, 0, 0, QUOCMP },
+    { 153, 0, 0, QUOTIMER },
 };
 
 void VM::JMP(int32_t address, int32_t segment) {
@@ -266,6 +266,31 @@ void VM::int_vm(int32_t n, float p) {
     interrupt_flag = n;
 }
 
+void VM::PrivilegeRequest(float op1, float op2, int32_t opcode) {
+    PreqOperand1 = op1;
+    PreqOperand2 = op2;
+    PreqReturn = 0;
+    PreqHandled = -1;
+
+    IP = XEIP;
+    int_vm(ERR_PROCESSOR_FAULT, opcode);
+}
+
+void VM::ExecuteInstruction(Instruction* instruction, float* op1, float* op2) {
+    if(instruction->privileged) {
+        if(PCAP && current_page.bits.runlevel > 0) {
+            if(PreqHandled == 0) {
+                PrivilegeRequest(*op1, *op2, instruction->opcode);
+                return;
+            }
+
+            PreqHandled = 0;
+        }
+    }
+
+    instruction->execute(this, op1, op2);
+}
+
 void VM::Push(float n) {
     int32_t address = ESP + SS;
 
@@ -337,10 +362,6 @@ float* VM::ReadCell(int32_t address, int32_t segment) {
     }
 
     if(PCAP && extended_memory_flag) {
-        Page curPage;
-        int32_t curMap;
-        GetPage(IP / 128, &curPage, &curMap);
-        if(interrupt_flag) return nullptr;
         int32_t index = address / 128;
         Page page;
         int32_t map;
@@ -358,7 +379,7 @@ float* VM::ReadCell(int32_t address, int32_t segment) {
         }
 
 
-        if(extended_flag && curPage.bits.runlevel > page.bits.runlevel && !page.bits.read) {
+        if(extended_flag && current_page.bits.runlevel > page.bits.runlevel && !page.bits.read) {
             int_vm(ERR_READ_VIOLATION, address);
             return nullptr;
         }
@@ -395,11 +416,6 @@ float* VM::ReadCell(int32_t address) {
     }
 
     if(PCAP && extended_memory_flag) {
-        Page curPage;
-        int32_t curMap;
-        GetPage(IP / 128, &curPage, &curMap);
-        if(interrupt_flag) return nullptr;
-
         int32_t index = address / 128;
         Page page;
         int32_t map;
@@ -416,7 +432,7 @@ float* VM::ReadCell(int32_t address) {
             return nullptr;
         }
 
-        if(extended_flag && curPage.bits.runlevel > page.bits.runlevel && !page.bits.read) {
+        if(extended_flag && current_page.bits.runlevel > page.bits.runlevel && !page.bits.read) {
             int_vm(ERR_READ_VIOLATION, address);
             return nullptr;
         }
@@ -453,10 +469,6 @@ void VM::WriteCell(int32_t address, int32_t segment, int32_t value) {
     }
 
     if(PCAP && extended_memory_flag) {
-        Page curPage;
-        int32_t curMap;
-        GetPage(IP / 128, &curPage, &curMap);
-        if(interrupt_flag) return;
         int32_t index = address / 128;
         Page page;
         int32_t map;
@@ -491,7 +503,7 @@ void VM::WriteCell(int32_t address, int32_t segment, int32_t value) {
             }
         }
 
-        if(extended_flag && curPage.bits.runlevel > page.bits.runlevel && !page.bits.read) {
+        if(extended_flag && current_page.bits.runlevel > page.bits.runlevel && !page.bits.read) {
             int_vm(ERR_WRITE_VIOLATION, address);
             return;
         }
@@ -513,10 +525,6 @@ void VM::WriteCell(int32_t address, int32_t value) {
     }
 
     if(PCAP && extended_memory_flag) {
-        Page curPage;
-        int32_t curMap;
-        GetPage(IP / 128, &curPage, &curMap);
-        if(interrupt_flag) return;
         int32_t index = address / 128;
         Page page;
         int32_t map;
@@ -551,7 +559,7 @@ void VM::WriteCell(int32_t address, int32_t value) {
             }
         }
 
-        if(extended_flag && curPage.bits.runlevel > page.bits.runlevel && !page.bits.read) {
+        if(extended_flag && current_page.bits.runlevel > page.bits.runlevel && !page.bits.read) {
             int_vm(ERR_WRITE_VIOLATION, address);
             return;
         }
@@ -865,6 +873,14 @@ void VM::step() {
     if(interrupt_flag) return;
     
     XEIP = IP;
+    GetPage(IP / 128, &current_page, &current_page_map);
+    if(interrupt_flag) return;
+
+    if(PCAP && !current_page.bits.execute && previous_page.bits.runlevel > 0) {
+        int_vm(ERR_EXECUTE_VIOLATION, IP);
+        return;
+    }
+    
     int32_t opcode = fetch();
     if(interrupt_flag) return;
 
@@ -878,7 +894,7 @@ void VM::step() {
         if(!instructions[opcode].operand_count && instructions[opcode].execute != NULL) {
             static float blank;
             blank = 0;
-            instructions[opcode].execute(this, &blank, &blank);
+            ExecuteInstruction(&instructions[opcode], &blank, &blank);
             return;
         }
     }
@@ -914,14 +930,14 @@ void VM::step() {
     if (opcode < 0 || opcode >= (sizeof(instructions) / sizeof(Instruction)) || !instructions[opcode].execute) {
         int_vm(ERR_UNKNOWN_OPCODE, opcode);
     } else {
-        if(instructions[opcode].operand_count == 1) {
+         if(instructions[opcode].operand_count == 1) {
             static float blank;
             
             float* op1 = GetOperand(rm1, segment1);
             if(interrupt_flag) return;
 
             blank = 0;
-            instructions[opcode].execute(this, op1, &blank);
+            ExecuteInstruction(&instructions[opcode], op1, &blank);
         } else {
             float* op1 = GetOperand(rm1, segment1);
             if(interrupt_flag) return;
@@ -929,9 +945,11 @@ void VM::step() {
             float* op2 = GetOperand(rm2, segment2);
             if(interrupt_flag) return;
 
-            instructions[opcode].execute(this, op1, op2);
+            ExecuteInstruction(&instructions[opcode], op1, op2);
         }
 
+        previous_page = current_page;
+        previous_page_map = current_page_map;
     }
 }
 
@@ -953,6 +971,10 @@ void VM::VM() {
     BLOCKSTART = BLOCKSIZE = 0;
     PreqHandled = -1;
     PreqOperand1 = PreqOperand2 = PreqReturn = 0;
+    current_page.raw = 0;
+    current_page_map = 0;
+    previous_page.raw = 0;
+    previous_page_map = 0;
 }
 
 void out_printf(char* str, ...) {

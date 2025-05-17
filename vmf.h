@@ -160,6 +160,7 @@ enum ErrorCodes {
 struct Instruction {
     int opcode;
     int operand_count;
+    int privileged;
     void (*execute)(VM* vm, float* op1, float* op2);
 };
 
@@ -209,7 +210,11 @@ struct VM {
     int32_t PreqOperand1;
     float PreqOperand2;
     float PreqReturn;
-
+    Page current_page;
+    int32_t current_page_map;
+    Page previous_page;
+    int32_t previous_page_map;
+    
     VM();
 
     void JMP(int32_t address, int32_t segment);
@@ -217,6 +222,8 @@ struct VM {
     void CALL(int32_t address, int32_t segment);
     void CALL(int32_t address);
     void int_vm(int32_t n, float p);
+    void PrivilegeRequest(float op1, float op2, int32_t opcode);
+    void ExecuteInstruction(Instruction* instruction, float* op1, float* op2);
     void Push(float n);
     float Pop();
     void GetPage(int32_t index, Page* page, int32_t* map);

@@ -106,7 +106,19 @@ void TIMER(VM* vm, float* op1, float* op2) {
 }
 
 void CPUGET(VM* vm, float* op1, float* op2) {
-    *op1 = vm->GetInternalRegister(*op2);
+    if(vm->current_page.bits.runlevel) {
+        if(vm->PreqHandled == 1) {
+            *op1 = vm->PreqReturn;
+            vm->PreqReturn = 0;
+            vm->PreqHandled = 0;
+        } else if(vm->PreqHandled == 0) {
+            vm->PrivilegeRequest(*op1, *op2, 128);
+        } else {
+            vm->PreqHandled = 0;
+        }
+    } else {
+        *op1 = vm->GetInternalRegister(*op2);
+    }
 }
 
 void CPUSET(VM* vm, float* op1, float* op2) {
