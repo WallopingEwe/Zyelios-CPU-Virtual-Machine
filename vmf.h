@@ -222,7 +222,7 @@ struct VM {
     void CALL(int32_t address, int32_t segment);
     void CALL(int32_t address);
     void int_vm(int32_t n, float p);
-    void PrivilegeRequest(float op1, float op2, int32_t opcode);
+    void PrivilegeRequest(float* op1, float* op2, int32_t opcode);
     void ExecuteInstruction(Instruction* instruction, float* op1, float* op2);
     void Push(float n);
     float Pop();

@@ -43,7 +43,7 @@ void GMAP(VM* vm, float* op1, float* op2) {
             vm->PreqReturn = 0;
             vm->PreqHandled = 0;
         } else if(vm->PreqHandled == 0) {
-            vm->PrivilegeRequest(*op1, *op2, 132);
+            vm->PrivilegeRequest(op1, op2, 132);
         } else {
             vm->PreqHandled = 0;
         }

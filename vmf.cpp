@@ -213,7 +213,7 @@ void VM::CALL(int32_t address) {
 }
 
 void VM::int_vm(int32_t n, float p) {
-    if(cli_flag) {
+    if(cli_flag && interrupt_flag != ERR_END_EXECUTION) {
         interrupt_flag = n;
         interrupt_skip = 1;
         return;
@@ -223,10 +223,13 @@ void VM::int_vm(int32_t n, float p) {
         int32_t addr = IDTR + n*4;
         addr = (addr < 0) ? 0 : (addr > MEMORY_MODEL - 2) ? MEMORY_MODEL - 2 : addr;
 
+        int prev_pcap;
+        PCAP = 0;
         int32_t ip = *ReadCell(addr);
         int32_t cs = *ReadCell(addr+1);
         int32_t newptbl = *ReadCell(addr+2);
         int32_t flags = *ReadCell(addr+3);
+        PCAP = prev_pcap;
 
         if(flags & 32) { // 5
 
@@ -266,9 +269,9 @@ void VM::int_vm(int32_t n, float p) {
     interrupt_flag = n;
 }
 
-void VM::PrivilegeRequest(float op1, float op2, int32_t opcode) {
-    PreqOperand1 = op1;
-    PreqOperand2 = op2;
+void VM::PrivilegeRequest(float* op1, float* op2, int32_t opcode) {
+    PreqOperand1 = *op1;
+    PreqOperand2 = *op2;
     PreqReturn = 0;
     PreqHandled = -1;
 
@@ -280,7 +283,7 @@ void VM::ExecuteInstruction(Instruction* instruction, float* op1, float* op2) {
     if(instruction->privileged) {
         if(PCAP && current_page.bits.runlevel > 0) {
             if(PreqHandled == 0) {
-                PrivilegeRequest(*op1, *op2, instruction->opcode);
+                PrivilegeRequest(op1, op2, instruction->opcode);
                 return;
             }
 
@@ -326,13 +329,14 @@ void VM::GetPage(int32_t index, Page* page, int32_t* map) {
         }
 
         PCAP = 0;
-        page->raw = *ReadCell(pageEntry);
-        *map = *ReadCell(pageEntry + 1);
+        float* new_bits = ReadCell(pageEntry);
+        float* new_map = ReadCell(pageEntry + 1);
         PCAP = 1;
 
-        if(!page->raw || !*map) {
-            int_vm(ERR_PROCESSOR_FAULT, 8);
-        }
+        if(interrupt_flag) return;
+
+        page->raw = *new_bits;
+        *map = *new_map;
     }
 }
 
@@ -377,7 +381,6 @@ float* VM::ReadCell(int32_t address, int32_t segment) {
             int_vm(ERR_MEMORY_FAULT, address);
             return nullptr;
         }
-
 
         if(extended_flag && current_page.bits.runlevel > page.bits.runlevel && !page.bits.read) {
             int_vm(ERR_READ_VIOLATION, address);
@@ -873,6 +876,8 @@ void VM::step() {
     if(interrupt_flag) return;
     
     XEIP = IP;
+    previous_page = current_page;
+    previous_page_map = current_page_map;
     GetPage(IP / 128, &current_page, &current_page_map);
     if(interrupt_flag) return;
 
@@ -882,7 +887,7 @@ void VM::step() {
     }
     
     int32_t opcode = fetch();
-    if(interrupt_flag) return;
+    if(interrupt_flag) return;    
 
     //bool isFixedSize = false;
     if((opcode >= 2000 && opcode < 4000) || (opcode >= 12000 && opcode < 14000)) {
@@ -894,6 +899,7 @@ void VM::step() {
         if(!instructions[opcode].operand_count && instructions[opcode].execute != NULL) {
             static float blank;
             blank = 0;
+
             ExecuteInstruction(&instructions[opcode], &blank, &blank);
             return;
         }
@@ -947,9 +953,6 @@ void VM::step() {
 
             ExecuteInstruction(&instructions[opcode], op1, op2);
         }
-
-        previous_page = current_page;
-        previous_page_map = current_page_map;
     }
 }
 
