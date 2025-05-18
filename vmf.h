@@ -228,9 +228,7 @@ struct VM {
     float Pop();
     void GetPage(int32_t index, Page* page, int32_t* map);
     void SetPage(int32_t index, int32_t mask, int32_t map);
-    float* ReadCell(int32_t address, int32_t segment);
     float* ReadCell(int32_t address);
-    void WriteCell(int32_t address, int32_t segment, int32_t value);
     void WriteCell(int32_t address, int32_t value);
     float fetch();
     float* GetOperand(int32_t rm, int32_t segment);

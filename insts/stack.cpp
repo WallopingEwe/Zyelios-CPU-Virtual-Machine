@@ -43,19 +43,19 @@ void POPA(VM* vm, float* op1, float* op2) {
 }
 
 void RSTACK(VM* vm, float* op1, float* op2) {
-    if (*op2 < 0 || *op2 >= MEMORY_MODEL) {
+    if (*op2 > vm->ESZ || *op2 < 0 || *op2 >= MEMORY_MODEL) {
         vm->int_vm(ERR_STACK_ERROR, *op2);
         return;
     }
 
-    float* val = vm->ReadCell(vm->SS + *op2);
+    float* val = vm->ReadCell(*op2 + vm->SS);
     if (vm->interrupt_flag) return;
 
     *op1 = *val;
 }
 
 void SSTACK(VM* vm, float* op1, float* op2) {
-    if (*op1 < 0 || *op1 >= MEMORY_MODEL) {
+    if (*op1 > vm->ESZ || *op1 < 0 || *op1 >= MEMORY_MODEL) {
         vm->int_vm(ERR_STACK_ERROR, *op1);
         return;
     }

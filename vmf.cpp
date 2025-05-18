@@ -295,27 +295,28 @@ void VM::ExecuteInstruction(Instruction* instruction, float* op1, float* op2) {
 }
 
 void VM::Push(float n) {
-    int32_t address = ESP + SS;
-
-    if(ESP == SS || address < 0 || address >= MEMORY_MODEL) {
-        int_vm(ERR_STACK_ERROR, n);
-        return;
-    }
+    WriteCell(ESP-- + SS, n);
+    if(interrupt_flag) return;
     
-    Memory[address] = n;
-    ESP--;
+    if(ESP < 0) {
+        ESP = 0;
+        int_vm(ERR_STACK_ERROR, ESP);
+    }
 }
 
 float VM::Pop() {
     ESP++;
 
-    int32_t address = ESP + SS;
-    if(address < 0 || address >= MEMORY_MODEL) {
-        int_vm(ERR_STACK_ERROR, address);
+    if(ESP > ESZ) {
+        ESP = ESZ;
+        int_vm(ERR_STACK_ERROR, ESP);
         return NULL;
     }
 
-    return Memory[address];
+    float* value = ReadCell(ESP + SS);
+    if(interrupt_flag) return NULL;
+
+    return *value;
 }
 
 void VM::GetPage(int32_t index, Page* page, int32_t* map) {
@@ -357,61 +358,7 @@ void VM::SetPage(int32_t index, int32_t mask, int32_t map) {
     }
 }
 
-float* VM::ReadCell(int32_t address, int32_t segment) {
-    address += segment;
-
-    if (address < 0 || address >= MEMORY_MODEL) {
-        int_vm(ERR_MEMORY_FAULT, address);
-        return nullptr;
-    }
-
-    if(PCAP && extended_memory_flag) {
-        int32_t index = address / 128;
-        Page page;
-        int32_t map;
-        GetPage(index, &page, &map);
-        if(interrupt_flag) return nullptr;
-
-        if(page.bits.trapped) {
-            int_vm(ERR_PAGE_TRAPPED, address);
-            return nullptr;
-        }
-        
-        if(page.bits.disabled) {
-            int_vm(ERR_MEMORY_FAULT, address);
-            return nullptr;
-        }
-
-        if(extended_flag && current_page.bits.runlevel > page.bits.runlevel && !page.bits.read) {
-            int_vm(ERR_READ_VIOLATION, address);
-            return nullptr;
-        }
-
-        if(page.bits.remapped && map != index) {
-            address = address % 128 + map * 128;
-        }
-
-        if(page.bits.override) {
-            if(MEMRQ == 4) {
-                static float immediate = LADD;
-                MEMRQ = 0;
-                return &immediate;
-            } else {
-                MEMRQ = 2;
-                MEMADDR = address;
-                LADD = Memory[address];
-
-                int_vm(READ_REQUEST, 0);
-                return nullptr;
-            }
-        }
-    }
-
-    return &Memory[address];
-}
-
 float* VM::ReadCell(int32_t address) {
-    address += DS;
 
     if (address < 0 || address >= MEMORY_MODEL) {
         int_vm(ERR_MEMORY_FAULT, address);
@@ -461,66 +408,9 @@ float* VM::ReadCell(int32_t address) {
     }
 
     return &Memory[address];
-}
-    
-void VM::WriteCell(int32_t address, int32_t segment, int32_t value) {
-    address += segment;
-
-    if (address < 0 || address >= MEMORY_MODEL) {
-        int_vm(ERR_MEMORY_FAULT, address);
-        return;
-    }
-
-    if(PCAP && extended_memory_flag) {
-        int32_t index = address / 128;
-        Page page;
-        int32_t map;
-        GetPage(index, &page, &map);
-        if(interrupt_flag) return;
-
-        if(page.bits.trapped) {
-            int_vm(ERR_PAGE_TRAPPED, address);
-            return;
-        }
-        
-        if(page.bits.disabled) {
-            int_vm(ERR_MEMORY_FAULT, address);
-            return;
-        }
-
-        if(page.bits.override) {
-            if(MEMRQ == 6) {
-                MEMRQ = 0;
-                return;
-            } else if(MEMRQ == 5) {
-                MEMRQ = 0;
-                address = MEMADDR;
-                value = LADD;
-            } else {
-                MEMRQ = 3;
-                MEMADDR = address;
-                LADD = value;
-
-                int_vm(WRITE_REQUEST, LADD);
-                return;
-            }
-        }
-
-        if(extended_flag && current_page.bits.runlevel > page.bits.runlevel && !page.bits.read) {
-            int_vm(ERR_WRITE_VIOLATION, address);
-            return;
-        }
-
-        if(page.bits.remapped && map != index) {
-            address = address % 128 + map * 128;
-        }
-    }
-
-    Memory[address] = value;
 }
 
 void VM::WriteCell(int32_t address, int32_t value) {
-    address += DS;
     
     if (address < 0 || address >= MEMORY_MODEL) {
         int_vm(ERR_MEMORY_FAULT, address);
@@ -605,22 +495,22 @@ float* VM::GetOperand(int32_t rm, int32_t segment) {
         if (interrupt_flag) return nullptr;
 
         if(segment == -1) {
-            return ReadCell(*reg);
+            return ReadCell(*reg + DS);
         } else {
             float* seg = GetSegment(segment);
             if (interrupt_flag) return nullptr;
-            return ReadCell(*reg, *seg);
+            return ReadCell(*reg + *seg);
         }
     } else if (rm == 25) {
         float addr = fetch();
         if (interrupt_flag) return nullptr;
 
         if(segment == -1) {
-            return ReadCell(addr);
+            return ReadCell(addr + DS);
         } else {
-            float* reg = GetSegment(segment);
+            float* seg = GetSegment(segment);
             if (interrupt_flag) return nullptr;
-            return ReadCell(*reg, addr);
+            return ReadCell(addr + *seg);
         }
     } else if (rm == 50) {
         float* reg = GetSegment(segment);
@@ -634,22 +524,22 @@ float* VM::GetOperand(int32_t rm, int32_t segment) {
         return &R[rm-2048];
     } else if (rm >= 2080 && rm <= 2111) {
         if(segment == -1) {
-            return ReadCell(R[rm-2080]);
+            return ReadCell(R[rm-2080] + DS);
         } else {
-            float* reg = GetSegment(segment);
+            float* seg = GetSegment(segment);
             if (interrupt_flag) return nullptr;
-            return ReadCell(*reg, R[rm-2080]);
+            return ReadCell(R[rm-2080] + *seg);
         }
     } else if (rm >= 2144 && rm <= 2175) {
         float addr = fetch();
         if (interrupt_flag) return nullptr;
 
         if(segment == -1) {
-            return ReadCell(addr);
+            return ReadCell(addr + DS);
         } else {
-            float* reg = GetSegment(segment);
+            float* seg = GetSegment(segment);
             if (interrupt_flag) return nullptr;
-            return ReadCell(*reg, addr);
+            return ReadCell(addr + *seg);
         }
     }
 
@@ -964,7 +854,7 @@ void VM::VM() {
     EAX = EBX = ECX = EDX = ESI = EDI = 0;
     ESP = MEMORY_MODEL-1;
     EBP = 0;
-    ESZ = 0;
+    ESZ = ESP;
     CS = SS = DS = ES = GS = FS = KS = LS = 0;
     PTBL = PTBE = 0;
     PCAP = 1;
