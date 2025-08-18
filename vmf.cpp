@@ -452,7 +452,7 @@ void VM::WriteCell(int32_t address, int32_t value) {
             }
         }
 
-        if(extended_flag && current_page.bits.runlevel > page.bits.runlevel && !page.bits.read) {
+        if(extended_flag && current_page.bits.runlevel > page.bits.runlevel && !page.bits.write) {
             int_vm(ERR_WRITE_VIOLATION, address);
             return;
         }
