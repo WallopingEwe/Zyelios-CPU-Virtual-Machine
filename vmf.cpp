@@ -512,6 +512,16 @@ float* VM::GetOperand(int32_t rm, int32_t segment) {
             if (interrupt_flag) return nullptr;
             return ReadCell(addr + *seg);
         }
+    } else if (rm >= 26 && rm <= 33) {
+        float* seg = GetSegment(segment);
+        if (interrupt_flag) return nullptr;
+
+        float* reg = GetRegister(rm - 25);
+        if (interrupt_flag) return nullptr;
+        
+        static float immediate;
+        immediate = *seg + *reg;
+        return &immediate;
     } else if (rm == 50) {
         float* reg = GetSegment(segment);
         if (interrupt_flag) return nullptr;
