@@ -821,13 +821,13 @@ float VM::GetInternalRegister(int32_t index) {
         case 26: return XEIP;
         case 27: return LADD;
         case 28: return LINT;
-        case 29: return TMR; // TMR
-        case 30: return Timer; // TIMER
+        case 29: return TMR;
+        case 30: return Timer;
         case 31: return 0; // CPAGE
         case 32: return interrupt_flag;
         case 33: return 0; // PF
         case 34: return extended_flag;
-        case 35: return n_cli_flag; // NIF
+        case 35: return n_cli_flag;
         case 36: return extended_memory_flag;
         case 37: return PTBL;
         case 38: return PTBE;
@@ -839,7 +839,7 @@ float VM::GetInternalRegister(int32_t index) {
         case 44: return 0; // External
         case 45: return bus_lock; // Buslock
         case 46: return idle; // Idle
-        case 47: return interrupt_flag; // INTR
+        case 47: return interrupt_flag;
         case 48: return 0; // Serial Number
         case 49: return 0; // Code Bytes
         case 50: return 0; // BPREC
@@ -856,11 +856,11 @@ float VM::GetInternalRegister(int32_t index) {
         case 61: return 0; // CRL
         case 62: return TimerDT; // TIMERDT
         case 63: return MEMADDR;
-        case 64: return TimerMode; // TimerMode
-        case 65: return TimerRate; // TimerRate
-        case 66: return TimerPrevTime; // TimerPrevTime
-        case 67: return TimerAddress; // TimerAddress
-        case 68: return TimerPrevMode; // TimerPrevMode
+        case 64: return TimerMode;
+        case 65: return TimerRate;
+        case 66: return TimerPrevTime;
+        case 67: return TimerAddress;
+        case 68: return TimerPrevMode;
         case 69: return 0; // LASTQUO
         case 70: return 0; // QUOFLAG
         case 71: return PreqOperand1;
@@ -904,13 +904,13 @@ void VM::SetInternalRegister(int32_t index, float value) {
         case 26: break; // XEIP
         case 27: LADD = value; break;
         case 28: LINT = value; break;
-        case 29: TMR = value; break; // TMR
-        case 30: Timer = value; break; // TIMER
+        case 29: TMR = value; break;
+        case 30: Timer = value; break;
         case 31: break; // CPAGE
         case 32: interrupt_flag = value; break;
         case 33: break; // PF
         case 34: extended_flag = value; break;
-        case 35: n_cli_flag; // NIF
+        case 35: n_cli_flag; break;
         case 36: extended_memory_flag = value; break;
         case 37: PTBL = value; break;
         case 38: PTBE = value; break;
@@ -920,9 +920,9 @@ void VM::SetInternalRegister(int32_t index, float value) {
         case 42: break; // MEMRQ
         case 43: break; // Memory Model
         case 44: break; // External
-        case 45: bus_lock = value; break; // Buslock
+        case 45: bus_lock = value; break;
         case 46: break; // Idle
-        case 47: interrupt_flag; // INTR
+        case 47: interrupt_flag;
         case 48: break; // Serial Number
         case 49: break; // Code Bytes
         case 50: break; // BPREC
@@ -939,11 +939,11 @@ void VM::SetInternalRegister(int32_t index, float value) {
         case 61: break; // CRL
         case 62: break; // TIMERDT
         case 63: break; // MEMADDR
-        case 64: TimerMode = value; break; // TimerMode
-        case 65: TimerRate = value; break; // TimerRate
-        case 66: TimerPrevTime = value; break; // TimerPrevTime
-        case 67: TimerAddress = value; break; // TimerAddress
-        case 68: TimerPrevMode = value; break; // TimerPrevMode
+        case 64: TimerMode = value; break;
+        case 65: TimerRate = value; break;
+        case 66: TimerPrevTime = value; break;
+        case 67: TimerAddress = value; break;
+        case 68: TimerPrevMode = value; break;
         case 69: break; // LASTQUO
         case 70: break; // QUOFLAG
         case 71: PreqOperand1 = value; break;
