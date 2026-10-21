@@ -92,11 +92,19 @@ void XCHG(VM* vm, float* op1, float* op2) {
 }
 
 void IN(VM* vm, float* op1, float* op2) {
-    *op1 = inportb(*op2);
+    if(vm->portb) {
+        *op1 = inportb(*op2);
+    } else {
+        *op1 = inport(*op2);
+    }
 }
 
 void OUT(VM* vm, float* op1, float* op2) {
-    outportb(*op1, *op2);
+    if(vm->portb) {
+        outportb(*op1, *op2);
+    } else {
+        outport(*op1, *op2);
+    }
 }
 
 void TIMER(VM* vm, float* op1, float* op2) {

@@ -868,6 +868,7 @@ float VM::GetInternalRegister(int32_t index) {
         case 73: return PreqReturn;
         case 74: return PreqHandled;
         case 75: return external_interrupts;
+        case 76: return portb;
         default:
             if(index >= 96 && index <= 126) {
                 return R[index - 17];
@@ -950,6 +951,7 @@ void VM::SetInternalRegister(int32_t index, float value) {
         case 73: PreqReturn = value; break;
         case 74: PreqHandled = value; break;
         case 75: external_interrupts = value; break;
+        case 76: portb = value; break;
         default:
             if(index >= 96 && index <= 126) {
                 R[index - 17] = value;
@@ -1122,13 +1124,14 @@ void VM::VM() {
     TimerPrevTime = 0;
     TimerPrevMode = 0;
     idle = 0;
+    ext_swap = 0;
     ext_op[0] = 0;
     ext_op[1] = 0;
     ext_op_address[0] = 0;
     ext_op_address[1] = 0;
-    ext_swap = 0;
     ext_flush[0] = 0;
     ext_flush[1] = 0;
+    portb = 0;
 }
 
 #ifdef DEBUG_MODE

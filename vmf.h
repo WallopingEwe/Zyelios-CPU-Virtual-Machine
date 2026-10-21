@@ -230,7 +230,8 @@ struct VM {
     int32_t ext_op_address[2];
     char ext_swap;
     char ext_flush[2];
-    
+    char portb;
+
     VM();
 
     void JMP(int32_t address, int32_t segment);
