@@ -225,7 +225,7 @@ void interrupt pit_irq(...) {
 }
 
 void VM::JMP(int32_t address, int32_t segment) {
-    int32_t abs = address + CS;        
+    int32_t abs = address + segment;        
     if(abs < 0 || abs >= MEMORY_MODEL) {
         int_vm(ERR_END_EXECUTION, abs, 0, 0);
         return;
