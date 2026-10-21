@@ -58,7 +58,37 @@ void RETF(VM* vm, float* op1, float* op2) {
 }
 
 void EXTRETA(VM* vm, float* op1, float* op2) {
-    
+    vm->Pop(); if(vm->interrupt_flag) return; // IRET CS
+    vm->Pop(); if(vm->interrupt_flag) return; // IRET EIP
+
+    for(char i = 0; i < 32; i++) {
+        vm->R[i] = vm ->Pop();
+        if(vm->interrupt_flag) return;
+    }
+
+    int32_t ip = vm->Pop(); if(vm->interrupt_flag) return;
+    vm->CMPR = vm->Pop(); if(vm->interrupt_flag) return;
+
+    vm->EAX = vm->Pop(); if(vm->interrupt_flag) return;
+    vm->EBX = vm->Pop(); if(vm->interrupt_flag) return;
+    vm->ECX = vm->Pop(); if(vm->interrupt_flag) return;
+    vm->EDX = vm->Pop(); if(vm->interrupt_flag) return;
+    vm->EBP = vm->Pop(); if(vm->interrupt_flag) return;
+    vm->Pop(); if(vm->interrupt_flag) return; // ESP
+    vm->ESI = vm->Pop(); if(vm->interrupt_flag) return;
+    vm->EDI = vm->Pop(); if(vm->interrupt_flag) return;
+
+    int32_t cs = vm->Pop(); if(vm->interrupt_flag) return;
+
+    vm->Pop(); if(vm->interrupt_flag) return; // SS
+    vm->DS = vm->Pop(); if(vm->interrupt_flag) return;
+    vm->FS = vm->Pop(); if(vm->interrupt_flag) return;
+    vm->GS = vm->Pop(); if(vm->interrupt_flag) return;
+    vm->ES = vm->Pop(); if(vm->interrupt_flag) return;
+    vm->KS = vm->Pop(); if(vm->interrupt_flag) return;
+    vm->LS = vm->Pop(); if(vm->interrupt_flag) return;
+
+    vm->JMP(ip, cs);
 }
 
 void JG(VM* vm, float* op1, float* op2) {

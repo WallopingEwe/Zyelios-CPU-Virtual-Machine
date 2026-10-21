@@ -44,7 +44,7 @@ void POPA(VM* vm, float* op1, float* op2) {
 
 void RSTACK(VM* vm, float* op1, float* op2) {
     if (*op2 > vm->ESZ || *op2 < 0 || *op2 >= MEMORY_MODEL) {
-        vm->int_vm(ERR_STACK_ERROR, *op2);
+        vm->int_vm(ERR_STACK_ERROR, *op2, 0, 0);
         return;
     }
 
@@ -56,7 +56,7 @@ void RSTACK(VM* vm, float* op1, float* op2) {
 
 void SSTACK(VM* vm, float* op1, float* op2) {
     if (*op1 > vm->ESZ || *op1 < 0 || *op1 >= MEMORY_MODEL) {
-        vm->int_vm(ERR_STACK_ERROR, *op1);
+        vm->int_vm(ERR_STACK_ERROR, *op1, 0, 0);
         return;
     }
     

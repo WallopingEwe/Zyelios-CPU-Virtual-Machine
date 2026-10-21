@@ -19,7 +19,6 @@
 #define uint8_t unsigned char
 #define int8_t signed char
 
-#define nullptr NULL
-#define bool int
+#define bool char
 #define true 1
 #define false 0

@@ -1,5 +1,5 @@
 void END(VM* vm, float* op1, float* op2) {
-    vm->int_vm(ERR_END_EXECUTION, vm->IP);
+    vm->int_vm(ERR_END_EXECUTION, vm->IP, 0, 0);
 }
 
 void CPUID(VM* vm, float* op1, float* op2) {
@@ -50,7 +50,7 @@ void RAND(VM* vm, float* op1, float* op2) {
 }
 
 void IDLE(VM* vm, float* op1, float* op2) {
-    
+    vm->idle = 1;
 }
 
 void NOP(VM* vm, float* op1, float* op2) {
@@ -74,15 +74,15 @@ void XOR(VM* vm, float* op1, float* op2) {
 }
 
 void INT(VM* vm, float* op1, float* op2) {
-    vm->int_vm(*op1, 0);
+    vm->int_vm(*op1, 0, 0, 0);
 }
 
 void STI(VM* vm, float* op1, float* op2) {
-    vm->cli_flag = 0;
+    vm->n_cli_flag = 1;
 }
 
 void CLI(VM* vm, float* op1, float* op2) {
-    vm->cli_flag = 1;
+    vm->cli_flag = 0;
 }
 
 void XCHG(VM* vm, float* op1, float* op2) {
@@ -100,9 +100,7 @@ void OUT(VM* vm, float* op1, float* op2) {
 }
 
 void TIMER(VM* vm, float* op1, float* op2) {
-    clock_t now = clock();
-    
-    *op1 = (now - vm->creation_time) / CLK_TCK;
+    *op1 = vm->Timer + vm->TimerDT;
 }
 
 void CPUGET(VM* vm, float* op1, float* op2) {
@@ -128,7 +126,7 @@ void CPUSET(VM* vm, float* op1, float* op2) {
 void LEA(VM* vm, float* op1, float* op2) {
     int32_t address = op2 - vm->Memory;
     if(address < 0 || address >= MEMORY_MODEL) {
-        vm->int_vm(ERR_PROCESSOR_FAULT, 0);
+        vm->int_vm(ERR_PROCESSOR_FAULT, 0, 0, 0);
         return;
     }
 
