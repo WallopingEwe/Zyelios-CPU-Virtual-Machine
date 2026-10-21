@@ -225,9 +225,9 @@ void interrupt pit_irq(...) {
 }
 
 void VM::JMP(int32_t address, int32_t segment) {
-    address += segment;        
-    if(address < 0 || address >= MEMORY_MODEL) {
-        int_vm(ERR_END_EXECUTION, address, 0, 0);
+    int32_t abs = address + CS;        
+    if(abs < 0 || abs >= MEMORY_MODEL) {
+        int_vm(ERR_END_EXECUTION, abs, 0, 0);
         return;
     }
 
@@ -236,9 +236,9 @@ void VM::JMP(int32_t address, int32_t segment) {
 }
 
 void VM::JMP(int32_t address) {
-    address += CS;
-    if(address < 0 || address >= MEMORY_MODEL) {
-        int_vm(ERR_END_EXECUTION, address, 0, 0);
+    int32_t abs = address + CS;
+    if(abs < 0 || abs >= MEMORY_MODEL) {
+        int_vm(ERR_END_EXECUTION, abs, 0, 0);
         return;
     }
     
@@ -1002,7 +1002,7 @@ void VM::step() {
         n_cli_flag = 0;
     }
     
-    XEIP = IP + CS;
+    XEIP = CS + IP;
     TMR++;
 
     float time = ticks / 1000.0f;
@@ -1338,16 +1338,6 @@ int main(int argc, char *argv[]) {
             vm.step();
             cycles -= vm.TMR - prev_tmr;
             inst_count++;
-            
-            if(ctrlc) break;
-            if(!vm.interrupt_skip) break;
-
-            if(vm.external_interrupts) {
-                if(keyboard_extint) {
-                    vm.extint_vm(32, keyboard_extint_scancode);
-                    keyboard_extint = 0;
-                }
-            }
 
             #ifdef DEBUG_MODE
                 #if DEBUG_MODE == 1
@@ -1368,6 +1358,16 @@ int main(int argc, char *argv[]) {
                     if(vm.IP == breakPoint) break;
                 #endif
             #endif
+            
+            if(ctrlc) break;
+            if(!vm.interrupt_skip) break;
+
+            if(vm.external_interrupts) {
+                if(keyboard_extint) {
+                    vm.extint_vm(32, keyboard_extint_scancode);
+                    keyboard_extint = 0;
+                }
+            }
         }
 
         vm.idle = 0;
