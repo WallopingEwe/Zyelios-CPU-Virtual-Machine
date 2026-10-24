@@ -266,6 +266,13 @@ void VM::int_vm(int32_t n, float p, char external, char cascade) {
     
     if(cli_flag) {
         if(extended_flag) {
+            if(n < 0 || n > 255) {
+                if(!cascade) int_vm(ERR_PROCESSOR_FAULT, 3, 0, 1);
+                return;
+            }
+            
+            if(n > (NIDT - 1)) return;
+
             int32_t addr = IDTR + n*4;
             addr = (addr < 0) ? 0 : (addr > MEMORY_MODEL - 4) ? MEMORY_MODEL - 4 : addr;
 
@@ -844,7 +851,7 @@ float VM::GetInternalRegister(int32_t index) {
         case 49: return 0; // Code Bytes
         case 50: return 0; // BPREC
         case 51: return 0; // IPREC
-        case 52: return 0; // NIDT
+        case 52: return NIDT; // NIDT
         case 53: return BLOCKSTART;
         case 54: return BLOCKSIZE;
         case 55: return 0; // VMODE
@@ -927,7 +934,7 @@ void VM::SetInternalRegister(int32_t index, float value) {
         case 49: break; // Code Bytes
         case 50: break; // BPREC
         case 51: break; // IPREC
-        case 52: break; // NIDT
+        case 52: NIDT = value; break; // NIDT
         case 53: BLOCKSTART = value; break;
         case 54: BLOCKSIZE = value; break;
         case 55: break; // VMODE
@@ -1132,6 +1139,7 @@ void VM::VM() {
     ext_flush[0] = 0;
     ext_flush[1] = 0;
     portb = 0;
+    NIDT = 0;
 }
 
 #ifdef DEBUG_MODE

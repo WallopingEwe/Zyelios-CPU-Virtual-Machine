@@ -205,7 +205,7 @@ struct VM {
     float CS, SS, DS, ES, GS, FS, KS, LS;
     int32_t ESZ;
     float R[32]; // Extended registers
-    int immediate_swap;
+    char immediate_swap;
     float PreqHandled;
     int32_t PreqOperand1;
     float PreqOperand2;
@@ -231,7 +231,7 @@ struct VM {
     char ext_swap;
     char ext_flush[2];
     char portb;
-
+    int NIDT;
     VM();
 
     void JMP(int32_t address, int32_t segment);
